@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VibeDay</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;min-height:100vh}
+:root{--accent:#7F77DD;--card:#fff;--border:#e0d8f8;--sub:#9b8ec4;--bg2:#ede8ff;--input:#faf8ff}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh;gap:0}
+.sidebar{background:#2d2360;color:#fff;padding:1.5rem 1rem;display:flex;flex-direction:column;gap:1rem}
+.main{padding:1.5rem;overflow-y:auto}
+
+/* SIDEBAR */
+.s-logo{font-size:22px;font-weight:bold;margin-bottom:.5rem}.s-logo span{color:#b197fc}
+.s-section{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9b8ec4;margin-bottom:6px;margin-top:.5rem}
+.s-week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:.5rem}
+.s-day{background:#3d3380;border-radius:8px;padding:5px 2px;text-align:center;cursor:pointer;transition:.15s}
+.s-day:hover{background:#534AB7}.s-day.today{background:var(--accent)}
+.s-day-name{font-size:9px;color:#c4b8f8}.s-day-num{font-size:13px;font-weight:bold}
+.s-add{display:flex;flex-direction:column;gap:6px}
+.s-add input,.s-add select{padding:7px 10px;border:1px solid #534AB7;border-radius:8px;font-size:13px;background:#3d3380;color:#fff;width:100%}
+.s-add input::placeholder{color:#9b8ec4}
+.s-add button{padding:8px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:bold}
+
+/* PACE METER */
+.pace-card{background:#3d3380;border-radius:12px;padding:12px;margin-bottom:.5rem}
+.pace-label{font-size:12px;color:#c4b8f8;margin-bottom:8px}
+.pace-bar-wrap{background:#2d2360;border-radius:20px;height:14px;overflow:hidden;margin-bottom:6px}
+.pace-bar{height:100%;border-radius:20px;transition:width .5s,background .5s}
+.pace-text{font-size:13px;font-weight:bold}
+
+/* MAIN AREA */
+.page-title{font-size:20px;font-weight:bold;color:#2d2360;margin-bottom:1rem}
+.week-tasks{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:1.5rem}
+.day-col{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px;min-height:80px}
+.day-col-name{font-size:11px;font-weight:bold;color:var(--sub);margin-bottom:6px;text-align:center}
+.day-col.today-col{border:2px solid var(--accent);background:#faf8ff}
+.mini-task{font-size:11px;background:var(--bg2);border-radius:6px;padding:3px 6px;margin-bottom:3px;cursor:pointer;color:#2d2360}
+.mini-task.red{background:#fff0f0;color:#c0392b}
+.mini-task.amber{background:#fffbe6;color:#b7770a}
+
+/* TASK CARDS */
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.25rem;margin-bottom:12px;cursor:pointer;transition:.2s}
+.task-card:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(127,119,221,.15)}
+.task-card.open{border-color:var(--accent);box-shadow:0 4px 20px rgba(127,119,221,.2)}
+.tc-top{display:flex;align-items:center;justify-content:space-between}
+.tc-title{font-size:16px;font-weight:bold;color:#2d2360}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:bold}
+.red-b{background:#fff0f0;color:#c0392b}.amber-b{background:#fffbe6;color:#b7770a}.green-b{background:#f0fff4;color:#2e7d32}
+.tc-meta{font-size:12px;color:var(--sub);margin-top:4px}
+.tc-body{display:none;margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem}
+.tc-body.open{display:block}
+
+/* TIMER in task */
+.task-timer{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.t-circle{width:70px;height:70px;border-radius:50%;border:4px solid var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;background:#faf8ff;flex-shrink:0}
+.t-num{font-size:18px;font-weight:bold;color:#2d2360}
+.t-lbl{font-size:9px;color:var(--sub)}
+.t-btns{display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:bold}
+.btn2{padding:7px 12px;background:var(--card);color:#2d2360;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px}
+.btn:hover{opacity:.85}.btn2:hover{background:var(--bg2)}
+
+/* MUSIC SELECT */
+.music-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.m-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--card);color:var(--sub);transition:.15s}
+.m-chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* FILE UPLOAD */
+.upload-area{border:2px dashed var(--border);border-radius:12px;padding:1rem;text-align:center;margin-bottom:1rem;cursor:pointer;transition:.15s}
+.upload-area:hover{border-color:var(--accent);background:var(--bg2)}
+.upload-area input{display:none}
+.upload-label{font-size:13px;color:var(--sub)}
+.upload-label strong{color:var(--accent)}
+
+/* CHAT */
+.chat-box{background:var(--bg2);border-radius:12px;padding:10px;max-height:200px;overflow-y:auto;margin-bottom:8px}
+.chat-bubble{background:#fff;border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:13px;max-width:85%}
+.chat-me{background:var(--accent);color:#fff;border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:13px;margin-left:auto;max-width:85%}
+.chat-input{display:flex;gap:6px}
+.chat-input input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--input);color:#2d2360}
+
+/* DONE BUTTON */
+.done-btn{width:100%;padding:14px;background:linear-gradient(135deg,#7F77DD,#534AB7);color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:bold;margin-top:8px;letter-spacing:.5px}
+.done-btn:hover{opacity:.9}
+
+/* BREAK / SLEEP BANNERS */
+.banner{border-radius:14px;padding:12px 16px;text-align:center;font-size:14px;font-weight:bold;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:10px}
+.banner.show{display:flex}
+.banner-close{background:rgba(255,255,255,.3);border:none;border-radius:8px;padding:4px 10px;color:#fff;cursor:pointer;font-size:12px}
+.sleep-b{background:#2d2360;color:#fff}
+.break-b{background:#1D9E75;color:#fff}
+.video-b{background:#D85A30;color:#fff}
+
+/* VICTORY */
+#victory{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:200}
+#victory.show{display:flex}
+.v-box{background:#fff;border-radius:24px;padding:2rem;text-align:center;max-width:300px;animation:pop .3s}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.v-emoji{font-size:56px;margin-bottom:10px}
+.v-title{font-size:20px;font-weight:bold;color:#2d2360;margin-bottom:6px}
+.v-sub{font-size:13px;color:var(--sub);margin-bottom:1.5rem}
+.v-close{padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:14px;font-weight:bold}
+
+/* VIDEO TIMER */
+.video-timer{background:#fff3e0;border:1px solid #ffcc80;border-radius:12px;padding:10px 14px;font-size:13px;color:#e65100;margin-bottom:12px;text-align:center}
+
+@media(max-width:600px){.layout{grid-template-columns:1fr}.sidebar{padding:1rem}.week-tasks{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar">
+    <div class="s-logo">Vibe<span>Day</span></div>
+
+    <div class="pace-card">
+      <div class="pace-label">קצב כללי</div>
+      <div class="pace-bar-wrap"><div class="pace-bar" id="pacebar" style="width:70%;background:#2ecc71"></div></div>
+      <div class="pace-text" id="pacetext" style="color:#2ecc71">טוב! אתה בקצב</div>
+    </div>
+
+    <div>
+      <div class="s-section">השבוע</div>
+      <div class="s-week" id="sweek"></div>
+    </div>
+
+    <div>
+      <div class="s-section">הוסיפי משימה</div>
+      <div class="s-add">
+        <input id="new-title" placeholder="שם המשימה"/>
+        <select id="new-day">
+          <option value="0">ראשון</option><option value="1">שני</option>
+          <option value="2">שלישי</option><option value="3">רביעי</option>
+          <option value="4">חמישי</option><option value="5">שישי</option>
+          <option value="6">שבת</option>
+        </select>
+        <select id="new-pri">
+          <option value="red-b">דחוף</option>
+          <option value="amber-b">בקרוב</option>
+          <option value="green-b">שלום</option>
+        </select>
+        <input id="new-subject" placeholder="מקצוע (C++, אינפי...)"/>
+        <button onclick="addTask()">+ הוסיפי</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="s-section">סרטונים היום</div>
+      <div class="video-timer" id="video-counter" style="background:#3d3380;border:none;color:#c4b8f8">נשארו 30 דקות</div>
+    </div>
+    
+    <div>
+      <div class="s-section">נגן רקע</div>
+      <div style="border-radius:12px; overflow:hidden; border:1px solid #534AB7; background:#000; height:120px;">
+<iframe id="main-yt-player" width="100%" height="120" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>      </div>
+    </div>
+    
+    <button style="background:transparent; border:1px solid #534AB7; color:#9b8ec4; padding:8px; border-radius:8px; cursor:pointer; font-size:11px; margin-top:15px;" onclick="clearData()">איפוס נתונים שמורים</button>
+  </div>
+
+  <div class="main">
+
+    <div class="banner sleep-b" id="sleep-b">
+      <span>זמן ללכת לישון! 22:30 — הגוף שלך צריך מנוחה</span>
+      <button class="banner-close" onclick="this.closest('.banner').classList.remove('show')">סגור</button>
+    </div>
+    <div class="banner break-b" id="break-b">
+      <span id="break-msg">הפסקה! קומי, שתי מים, תתמתחי</span>
+      <div style="display:flex;gap:6px">
+        <button class="banner-close" onclick="breakReply('yes')">כן!</button>
+        <button class="banner-close" onclick="breakReply('no')">לא עכשיו</button>
+      </div>
+    </div>
+    <div class="banner video-b" id="video-b">
+      <span>בא לך לראות סרטון קצר? (נשארו <span id="vtime">30</span> דקות)</span>
+      <div style="display:flex;gap:6px">
+        <button class="banner-close" onclick="startVideo(5)">5 דקות</button>
+        <button class="banner-close" onclick="startVideo(10)">10 דקות</button>
+        <button class="banner-close" onclick="document.getElementById('video-b').classList.remove('show')">לא</button>
+      </div>
+    </div>
+
+    <div class="page-title">המשימות שלי השבוע</div>
+
+    <div class="week-tasks" id="week-grid"></div>
+
+    <div id="task-list"></div>
+
+  </div>
+</div>
+
+<div id="victory">
+  <div class="v-box">
+    <div class="v-emoji">🎉</div>
+    <div class="v-title">כל הכבוד!</div>
+    <div class="v-sub" id="v-sub">סיימת משימה! +50 XP</div>
+    <button class="v-close" onclick="closeVictory()">המשך!</button>
+  </div>
+</div>
+
+<script>
+const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const today=new Date().getDay();
+let videoMins=30;
+let tasks=[];
+
+// YouTube Playlists IDs
+const ytLinks = {
+  'Lo-fi': 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1',
+  'Jazz': 'https://www.youtube.com/embed/Dx5qFachd3A?autoplay=1',
+  'טבע': 'https://www.youtube.com/embed/eKFTSSKCzWA?autoplay=1',
+  'Classical': 'https://www.youtube.com/embed/mIYzp5rcTvU?autoplay=1',
+  'Focus': 'https://www.youtube.com/embed/4xDzrrm1vbc?autoplay=1'
+};
+
+// הגנה מחסימות זיכרון כשמריצים קובץ מקומי
+function loadData() {
+  try {
+    const savedTasks = localStorage.getItem('vibeDayTasksDesktop');
+    if(savedTasks) {
+      tasks = JSON.parse(savedTasks);
+    } else {
+      tasks = [
+        {title:'תרגיל C++ — destructor',day:1,pri:'red-b',subject:'C++',done:false},
+        {title:'תרגיל JavaScript',day:2,pri:'amber-b',subject:'JavaScript',done:false},
+        {title:'Duolingo — 10 דקות',day:0,pri:'green-b',subject:'כללי',done:false},
+        {title:'תרגיל אינפי — גבולות',day:3,pri:'red-b',subject:'אינפי',done:false},
+      ];
+    }
+    
+    const savedVideo = localStorage.getItem('vibeDayVideoMins');
+    if(savedVideo !== null) {
+      videoMins = parseInt(savedVideo);
+    }
+  } catch(e) {
+    tasks = [
+      {title:'תרגיל C++ — destructor',day:1,pri:'red-b',subject:'C++',done:false},
+      {title:'תרגיל אינפי — גבולות',day:3,pri:'red-b',subject:'אינפי',done:false},
+    ];
+  }
+  
+  document.getElementById('vtime').textContent = videoMins;
+  document.getElementById('video-counter').textContent = videoMins <= 0 ? 'נגמר זמן הסרטונים להיום!' : `נשארו ${videoMins} דקות`;
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('vibeDayTasksDesktop', JSON.stringify(tasks));
+    localStorage.setItem('vibeDayVideoMins', videoMins);
+  } catch(e) {}
+}
+
+function clearData() {
+  if(confirm("האם לאפס את כל המשימות השמורות ולחזור למצב ההתחלתי?")) {
+    try { localStorage.clear(); } catch(e){}
+    location.reload();
+  }
+}
+
+function sendNotification(title, body) {
+  try {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, { body: body });
+    }
+  } catch(e) {}
+}
+
+let activeTimer=null,timerSecs=0,timerRunning=false;
+
+function init(){
+  loadData();
+  
+  try {
+    if ("Notification" in window && Notification.permission !== "denied" && window.location.protocol !== 'file:') {
+      Notification.requestPermission();
+    }
+  } catch(e) {}
+  
+  buildWeekHeader();
+  buildWeekGrid();
+  renderTasks();
+  updatePace();
+  checkSleepLoop();
+  scheduleBreaks();
+  scheduleVideoSuggest();
+}
+
+function buildWeekHeader(){
+  const sw=document.getElementById('sweek');
+  sw.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='s-day'+(i===today?' today':'');
+    el.innerHTML=`<div class="s-day-name">${d.slice(0,2)}</div><div class="s-day-num">${i+1}</div>`;
+    sw.appendChild(el);
+  });
+}
+
+function buildWeekGrid(){
+  const grid=document.getElementById('week-grid');
+  grid.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const col=document.createElement('div');
+    col.className='day-col'+(i===today?' today-col':'');
+    col.innerHTML=`<div class="day-col-name">${d.slice(0,2)}</div>`;
+    tasks.filter(t=>t.day===i&&!t.done).forEach(t=>{
+      const mt=document.createElement('div');
+      mt.className=`mini-task ${t.pri==='red-b'?'red':t.pri==='amber-b'?'amber':''}`;
+      mt.textContent=t.title.length>14?t.title.slice(0,13)+'…':t.title;
+      mt.onclick=()=>scrollToTask(t.title);
+      col.appendChild(mt);
+    });
+    grid.appendChild(col);
+  });
+}
+
+function renderTasks(){
+  const list=document.getElementById('task-list');
+  list.innerHTML='';
+  const sorted=[...tasks].sort((a,b)=>{
+    const p={red:0,amber:1,green:2};
+    const ap=a.pri.replace('-b',''),bp=b.pri.replace('-b','');
+    return (p[ap]||0)-(p[bp]||0);
+  });
+  sorted.forEach((t,idx)=>{
+    if(t.done)return;
+    const card=document.createElement('div');
+    card.className='task-card';
+    card.id='task-'+idx;
+    const priLabel={red:'דחוף','amber-b':'בקרוב','green-b':'בסדר'}[t.pri]||'בקרוב';
+    const priClass=t.pri;
+    
+    const safeTitle = t.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    
+    card.innerHTML=`
+      <div class="tc-top" onclick="toggleTask(this)">
+        <div>
+          <div class="tc-title">${t.title}</div>
+          <div class="tc-meta">${t.subject} · ${DAYS[t.day]}</div>
+        </div>
+        <span class="badge ${priClass}">${priLabel}</span>
+      </div>
+      <div class="tc-body">
+        <div class="task-timer">
+          <div class="t-circle"><div class="t-num" data-timer>25:00</div><div class="t-lbl">טיימר</div></div>
+          <div class="t-btns">
+            <button class="btn" onclick="startTaskTimer(this)">התחילי</button>
+            <button class="btn2" onclick="resetTaskTimer(this)">איפוס</button>
+          </div>
+        </div>
+        <div class="s-section" style="color:var(--sub);margin-bottom:8px">מוזיקה</div>
+        <div class="music-row">
+          ${getMusicOptions(t.subject)}
+        </div>
+        <div class="s-section" style="color:var(--sub);margin-bottom:8px">העלי קובץ / שאלה</div>
+        <div class="upload-area" onclick="this.querySelector('input').click()">
+          <input type="file" accept=".pdf,.jpg,.png,.docx" onchange="fileUploaded(this)"/>
+          <div class="upload-label">לחצי כאן <strong>להעלות קובץ</strong> (PDF, תמונה)</div>
+        </div>
+        <div class="chat-box" id="chat-${idx}">
+          <div class="chat-bubble">היי! אני כאן לעזור עם ${t.subject}. שאלי אותי כל שאלה!</div>
+        </div>
+        <div class="chat-input">
+          <input placeholder="שאלי אותי..." onkeydown="if(event.key==='Enter')sendChat(this,'${idx}')"/>
+          <button class="btn" onclick="sendChat(this.previousElementSibling,'${idx}')">שלח</button>
+        </div>
+        <button class="done-btn" onclick="doneTask('${safeTitle}',this)">סיימתי! 🎉</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function getMusicOptions(subject){
+  const all=['Lo-fi','Jazz','טבע','Classical','Focus'];
+  const recommend={
+    'C++':'Lo-fi','JavaScript':'Lo-fi','אינפי':'Classical','כללי':'Jazz'
+  };
+  const rec=recommend[subject]||'Lo-fi';
+  return all.map(m=>`<div class="m-chip${m===rec?' on':''}" onclick="selectMusic(this,'${m}')">${m}${m===rec?' ✓':''}</div>`).join('');
+}
+
+// מעודכן: פונקציית בחירת המוזיקה עכשיו גם מפעילה את הנגן בצד
+function selectMusic(el,name){
+  el.closest('.music-row').querySelectorAll('.m-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  
+  const player = document.getElementById('main-yt-player');
+  if(player && ytLinks[name]) {
+    player.src = ytLinks[name];
+  }
+}
+
+function toggleTask(el){
+  const body=el.nextElementSibling;
+  const card=el.closest('.task-card');
+  body.classList.toggle('open');
+  card.classList.toggle('open');
+}
+
+function scrollToTask(title){
+  const cards=document.querySelectorAll('.task-card');
+  cards.forEach(c=>{if(c.querySelector('.tc-title').textContent===title){c.scrollIntoView({behavior:'smooth'});}});
+}
+
+function startTaskTimer(btn){
+  const display=btn.closest('.task-timer').querySelector('[data-timer]');
+  if(timerRunning&&activeTimer===display){
+    clearInterval(window._tInterval);timerRunning=false;btn.textContent='המשיכי';return;
+  }
+  if(activeTimer&&activeTimer!==display){clearInterval(window._tInterval);timerRunning=false;}
+  activeTimer=display;timerSecs=timerSecs||25*60;timerRunning=true;btn.textContent='עצרי';
+  window._tInterval=setInterval(()=>{
+    timerSecs--;
+    if(timerSecs<=0){
+      clearInterval(window._tInterval);
+      timerRunning=false;
+      btn.textContent='התחילי';
+      timerSecs=25*60;
+      sendNotification("הטיימר הסתיים! ⏰", "סיימת 25 דקות של ריכוז מלא. קחי הפסקה קטנה.");
+    }
+    const m=Math.floor(timerSecs/60),s=timerSecs%60;
+    display.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  },1000);
+}
+
+function resetTaskTimer(btn){
+  clearInterval(window._tInterval);timerRunning=false;timerSecs=25*60;
+  const display=btn.closest('.task-timer').querySelector('[data-timer]');
+  display.textContent='25:00';
+  btn.closest('.t-btns').querySelector('.btn').textContent='התחילי';
+}
+
+function fileUploaded(input){
+  const name=input.files[0]?.name||'';
+  input.closest('.upload-area').querySelector('.upload-label').innerHTML=`קובץ עלה: <strong>${name}</strong> — שאלי אותי שאלה למטה!`;
+}
+
+function sendChat(input,idx){
+  const v=typeof input==='string'?input:input.value.trim();
+  if(!v)return;
+  const chat=document.getElementById('chat-'+idx);
+  const me=document.createElement('div');me.className='chat-me';me.textContent=v;chat.appendChild(me);
+  if(typeof input!=='string')input.value='';
+  
+  setTimeout(() => {
+    const reply=document.createElement('div');reply.className='chat-bubble';
+    reply.textContent='שאלה מעניינת! פתחי את claude.ai כדי שנוכל לפתור את זה יחד עם קוד מלא.';
+    chat.appendChild(reply);
+    chat.scrollTop=chat.scrollHeight;
+  }, 500);
+}
+
+function addTask(){
+  const title=document.getElementById('new-title').value.trim();
+  if(!title) {
+    alert("שימי לב: אי אפשר להוסיף משימה בלי שם 😊");
+    return;
+  }
+  tasks.push({
+    title,
+    day:parseInt(document.getElementById('new-day').value),
+    pri:document.getElementById('new-pri').value,
+    subject:document.getElementById('new-subject').value||'כללי',
+    done:false
+  });
+  document.getElementById('new-title').value='';
+  document.getElementById('new-subject').value='';
+  saveData();
+  buildWeekGrid();
+  renderTasks();
+  updatePace();
+}
+
+function doneTask(title,btn){
+  playVictory();
+  const task = tasks.find(t=>t.title===title);
+  if(task) task.done=true;
+  saveData();
+  document.getElementById('victory').classList.add('show');
+  buildWeekGrid();renderTasks();updatePace();
+}
+
+function closeVictory(){document.getElementById('victory').classList.remove('show');}
+
+function updatePace(){
+  const total=tasks.length;
+  const done=tasks.filter(t=>t.done).length;
+  const urgent=tasks.filter(t=>t.pri==='red-b'&&!t.done).length;
+  const pct=total>0?Math.round((done/total)*100):100;
+  const bar=document.getElementById('pacebar');
+  const txt=document.getElementById('pacetext');
+  let color,label;
+  if(urgent===0&&pct>=60){color='#2ecc71';label='מצוין! בקצב מושלם';}
+  else if(urgent<=1&&pct>=30){color='#f39c12';label='בסדר, אפשר להאיץ קצת';}
+  else{color='#e74c3c';label='יש לחץ — בואי נתחיל!';}
+  bar.style.width=Math.max(10,pct)+'%';bar.style.background=color;
+  txt.style.color=color;txt.textContent=label;
+}
+
+function playVictory(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [[523,.0],[659,.15],[784,.3],[1047,.45],[1319,.6]].forEach(([f,t])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;o.type='sine';
+      g.gain.setValueAtTime(.3,ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(.01,ctx.currentTime+t+.35);
+      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+.4);
+    });
+  }catch(e){}
+}
+
+function checkSleepLoop(){
+  setInterval(()=>{
+    const h=new Date().getHours(),m=new Date().getMinutes();
+    if((h===22&&m>=30)||h===23) {
+      document.getElementById('sleep-b').classList.add('show');
+      sendNotification("זמן לישון! 🌙", "השעה 22:30. הגוף שלך צריך מנוחה לקראת מחר.");
+    }
+  },60000);
+}
+
+const breakMessages=['הפסקה! קומי, שתי מים, תתמתחי','זמן לאוכל קטן? אכלת היום?','5 דקות מנוחה לעיניים — הסתכלי הרחק','קומי, תתמתחי, נשמי עמוק'];
+let breakIdx=0;
+function scheduleBreaks(){
+  setTimeout(()=>{
+    const b=document.getElementById('break-b');
+    const msg = breakMessages[breakIdx%breakMessages.length];
+    document.getElementById('break-msg').textContent=msg;
+    b.classList.add('show');
+    sendNotification("הפסקת התרעננות 💧", msg);
+    breakIdx++;
+    scheduleBreaks();
+  },Math.random()*1800000+1800000);
+}
+
+function breakReply(ans){
+  document.getElementById('break-b').classList.remove('show');
+}
+
+function scheduleVideoSuggest(){
+  setTimeout(()=>{
+    if(videoMins>0) {
+      document.getElementById('video-b').classList.add('show');
+    }
+  },7200000);
+}
+
+function startVideo(mins){
+  document.getElementById('video-b').classList.remove('show');
+  videoMins-=mins;
+  saveData();
+  document.getElementById('vtime').textContent=videoMins;
+  document.getElementById('video-counter').textContent=videoMins <= 0 ? 'נגמר זמן הסרטונים להיום!' : `נשארו ${videoMins} דקות`;
+}
+
+init();
+</script>
+</body>
+</html>
