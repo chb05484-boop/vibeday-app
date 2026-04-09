@@ -3,115 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VibeDay - הניהול האישי של חנה</title>
+<title>VibeDay - Final Version</title>
 <style>
-/* --- עיצוב בסיסי ותשתית --- */
+/* --- עיצוב בסיסי --- */
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;min-height:100vh;overflow-x:hidden}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;height:100vh;overflow:hidden}
 :root{--accent:#7F77DD;--card:#fff;--border:#e0d8f8;--sub:#9b8ec4;--bg2:#ede8ff;--input:#faf8ff}
 
-/* --- פריסת עמוד --- */
-.layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+.layout{display:grid;grid-template-columns:280px 1fr;height:100vh}
 
-/* --- סיידבר מתוקן --- */
+/* --- סיידבר משופר (הפתרון לנגן) --- */
 .sidebar {
     background: #2d2360;
     color: #fff;
-    padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
-    position: sticky;
-    top: 0;
     height: 100vh;
-    z-index: 100;
+    border-left: 1px solid #3d3380;
 }
 
-/* אזור נגלול פנימי למשימות */
-.sidebar-content {
+.s-header { padding: 1.5rem 1rem 0.5rem; }
+.s-logo{font-size:22px;font-weight:bold;margin-bottom:.5rem}.s-logo span{color:#b197fc}
+
+/* אזור המשימות הנגלול */
+.s-scrollable {
     flex: 1;
     overflow-y: auto;
-    margin-bottom: 10px;
-    padding-right: 5px;
+    padding: 0.5rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
+.s-scrollable::-webkit-scrollbar { width: 4px; }
+.s-scrollable::-webkit-scrollbar-thumb { background: #3d3380; border-radius: 10px; }
 
-/* עיצוב פס גלילה עדין לסיידבר */
-.sidebar-content::-webkit-scrollbar { width: 4px; }
-.sidebar-content::-webkit-scrollbar-thumb { background: #3d3380; border-radius: 10px; }
-
-.s-logo{font-size:22px;font-weight:bold;margin-bottom:1rem}.s-logo span{color:#b197fc}
-.pace-card{background:#3d3380;border-radius:12px;padding:12px}
-.pace-bar-wrap{background:#2d2360;border-radius:20px;height:14px;overflow:hidden;margin:8px 0}
-.pace-bar{height:100%;transition:width .5s}
-.video-timer-card{background:linear-gradient(135deg, #534AB7, #7F77DD); border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition:transform 0.2s;}
-.video-timer-card:hover{transform:scale(1.02);}
-.v-mins-num{font-size:24px; font-weight:bold; display:block;}
-
-/* נגן דבוק לתחתית */
-.sidebar-footer {
-    position: sticky;
-    bottom: 0;
+/* הנגן והמוזיקה - דבוק לתחתית */
+.s-footer {
     background: #2d2360;
-    padding-top: 15px;
+    padding: 1rem;
     border-top: 1px solid #3d3380;
-    margin-top: auto;
 }
 
-/* --- ניהול משימות --- */
-.s-add input, .s-add select{padding:8px; border-radius:8px; border:none; background:#3d3380; color:#fff; width:100%; margin-bottom:5px; font-size:13px}
-.btn{padding:8px 15px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold}
+.music-selector { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.m-chip {
+    padding: 4px 8px; border-radius: 10px; border: 1px solid #534AB7;
+    font-size: 10px; cursor: pointer; background: transparent; color: #c4b8f8;
+}
+.m-chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-.main{padding:1.5rem;overflow-y:auto}
+/* --- אלמנטים נוספים --- */
+.pace-card{background:#3d3380;border-radius:12px;padding:12px;margin-bottom:5px}
+.pace-bar-wrap{background:#2d2360;border-radius:20px;height:12px;overflow:hidden;margin:6px 0}
+.pace-bar{height:100%;transition:width .5s}
+
+.video-timer-card{background:linear-gradient(135deg, #534AB7, #7F77DD); border-radius:12px; padding:12px; text-align:center; cursor:pointer}
+.v-mins-num{font-size:22px; font-weight:bold; display:block;}
+
+.s-add input, .s-add select{padding:8px; border-radius:8px; border:none; background:#3d3380; color:#fff; width:100%; margin-bottom:5px; font-size:12px}
+.btn{padding:8px 15px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px}
+
+/* --- מרכז המסך --- */
+.main{padding:1.5rem;overflow-y:auto;background:#f5f0ff}
 .week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:1.5rem}
 .day-col{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px; min-height:100px}
 .day-col.today{border:2px solid var(--accent); background:#faf8ff}
-.mini-task{font-size:11px; background:var(--bg2); border-radius:6px; padding:3px 6px; margin-bottom:3px; cursor:pointer}
+.mini-task{font-size:10px; background:var(--bg2); border-radius:6px; padding:3px 6px; margin-bottom:3px}
 
-/* --- כרטיסיית משימה וצ'אט AI --- */
 .task-card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; margin-bottom:12px}
-.ai-header{display:flex; align-items:center; gap:10px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border)}
-.ai-icon{width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold}
-.chat-box{background:var(--bg2); border-radius:12px; padding:12px; max-height:250px; overflow-y:auto; margin-bottom:10px}
-.bubble-ai{background:#fff; padding:10px; border-radius:10px; font-size:13px; margin-bottom:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05)}
-.bubble-me{background:var(--accent); color:#fff; padding:10px; border-radius:10px; font-size:13px; margin-bottom:8px; margin-right:auto; width:fit-content; max-width:80%}
+.chat-box{background:var(--bg2); border-radius:12px; padding:12px; max-height:200px; overflow-y:auto; margin-bottom:10px}
+.bubble-ai{background:#fff; padding:10px; border-radius:10px; font-size:13px; margin-bottom:8px}
+.bubble-me{background:var(--accent); color:#fff; padding:10px; border-radius:10px; font-size:13px; margin-bottom:8px; margin-right:auto; width:fit-content}
 
-/* --- קולנוע וסרטונים --- */
 #cinema-wrap{display:none; background:#000; border-radius:16px; overflow:hidden; margin-bottom:20px; position:relative; aspect-ratio:16/9}
-.close-cinema{position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.3); border:none; color:#fff; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10}
-.video-banner{background:#D85A30; color:#fff; padding:15px; border-radius:14px; margin-bottom:15px; display:none; flex-direction:column; gap:10px}
-.video-banner.show{display:flex}
-.video-actions{display:flex; gap:8px; flex-wrap:wrap}
-.v-btn{background:rgba(255,255,255,0.2); border:none; color:#fff; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:12px}
+.video-banner{background:#D85A30; color:#fff; padding:15px; border-radius:14px; margin-bottom:15px; display:none}
+.video-banner.show{display:flex; flex-direction:column; gap:10px}
 
-/* --- ניצחון --- */
 #victory{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:1000}
 #victory.show{display:flex}
-.v-box{background:#fff; padding:2rem; border-radius:24px; text-align:center; max-width:320px}
+.v-box{background:#fff; padding:2rem; border-radius:24px; text-align:center}
 </style>
 </head>
 <body>
 
 <div class="layout">
     <div class="sidebar">
-        <div class="s-logo">Vibe<span>Day</span></div>
-        
-        <div class="sidebar-content">
+        <div class="s-header">
+            <div class="s-logo">Vibe<span>Day</span></div>
             <div class="pace-card">
-                <div style="font-size:12px; color:#c4b8f8">קצב התקדמות</div>
+                <div style="font-size:11px; color:#c4b8f8">התקדמות שבועית</div>
                 <div class="pace-bar-wrap"><div id="p-bar" class="pace-bar" style="width:0%; background:#2ecc71"></div></div>
-                <div id="p-txt" style="font-size:13px; font-weight:bold">מתחילים עבודה!</div>
+                <div id="p-txt" style="font-size:11px">מתחילים!</div>
             </div>
-
+        </div>
+        
+        <div class="s-scrollable">
             <div class="video-timer-card" onclick="showVideoMenu()">
-                <span style="font-size:11px; opacity:0.9">תקציב צפייה יומי</span>
+                <span style="font-size:10px; opacity:0.9">תקציב צפייה</span>
                 <span class="v-mins-num" id="v-count">20 דקות</span>
-                <span style="font-size:10px; opacity:0.8">לחצי לפתיחת סרטונים</span>
+                <span style="font-size:9px">לחצי להמלצות</span>
             </div>
 
             <div class="s-add">
-                <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">הוסיפי משימה</div>
+                <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">משימה חדשה</div>
                 <input id="nt" placeholder="שם המשימה">
                 <select id="nd"><option value="0">ראשון</option><option value="1">שני</option><option value="2">שלישי</option><option value="3">רביעי</option><option value="4">חמישי</option><option value="5">שישי</option></select>
                 <input id="ns" placeholder="מקצוע (C++, אינפי)">
@@ -119,21 +112,28 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;mi
             </div>
         </div>
 
-        <div class="sidebar-footer">
-            <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">נגן רקע</div>
-            <iframe id="bg-player" width="100%" height="100" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div class="s-footer">
+            <div style="font-size:10px; color:#9b8ec4; margin-bottom:6px">מוזיקת ריכוז:</div>
+            <div class="music-selector">
+                <button class="m-chip on" onclick="selectMusic(this,'Lo-fi')">Lo-fi</button>
+                <button class="m-chip" onclick="selectMusic(this,'Jazz')">Jazz</button>
+                <button class="m-chip" onclick="selectMusic(this,'Nature')">טבע</button>
+                <button class="m-chip" onclick="selectMusic(this,'Classical')">קלאסי</button>
+                <button class="m-chip" onclick="selectMusic(this,'Focus')">Focus</button>
+            </div>
+            <iframe id="bg-player" width="100%" height="80" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0"></iframe>
         </div>
     </div>
 
     <div class="main">
         <div id="cinema-wrap">
-            <button class="close-cinema" onclick="closeCinema()">✕</button>
+            <button onclick="closeCinema()" style="position:absolute;top:10px;left:10px;z-index:10;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer">✕</button>
             <iframe id="c-player" width="100%" height="100%" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
 
         <div id="v-banner" class="video-banner">
-            <div style="font-weight:bold">סרטונים מומלצים עבורך:</div>
-            <div id="v-actions" class="video-actions"></div>
+            <div style="font-weight:bold">הפסקת וידאו מומלצת:</div>
+            <div id="v-actions" style="display:flex;gap:8px;flex-wrap:wrap"></div>
         </div>
 
         <div class="week-grid" id="week-grid"></div>
@@ -143,9 +143,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;mi
 
 <div id="victory">
     <div class="v-box">
-        <h1 style="font-size:50px">🎉</h1>
-        <h2>כל הכבוד חנה!</h2>
-        <p id="v-msg" style="margin:10px 0; color:var(--sub)"></p>
+        <h1 style="font-size:40px">🎉</h1>
+        <h2 id="v-msg">משימה הושלמה!</h2>
+        <p style="margin:10px 0; color:var(--sub)">קיבלת 5 דקות צפייה מתנה</p>
         <button class="btn" onclick="document.getElementById('victory').classList.remove('show')">מעולה!</button>
     </div>
 </div>
@@ -156,22 +156,22 @@ const today=new Date().getDay();
 let videoMins=20;
 let tasks=[];
 
+const ytLinks = {
+    'Lo-fi': 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1',
+    'Jazz': 'https://www.youtube.com/embed/Dx5qFachd3A?autoplay=1',
+    'Nature': 'https://www.youtube.com/embed/eKFTSSKCzWA?autoplay=1',
+    'Classical': 'https://www.youtube.com/embed/mIYzp5rcTvU?autoplay=1',
+    'Focus': 'https://www.youtube.com/embed/4xDzrrm1vbc?autoplay=1'
+};
+
 const videoPool = [
-    {id:'jfKfPfyJRdk', title:'אתגר C++ ב-10 דקות'},
-    {id:'Dx5qFachd3A', title:'מוזיקת ציל-אאוט לריכוז'},
-    {id:'mIYzp5rcTvU', title:'איך לעבור אינפי בשלום'},
-    {id:'4xDzrrm1vbc', title:'טיפים לפרודוקטיביות'},
-    {id:'eKFTSSKCzWA', title:'מקצבים קצביים לעבודה'}
+    {id:'jfKfPfyJRdk', title:'אתגר C++'}, {id:'Dx5qFachd3A', title:'גאז רגוע'}, {id:'mIYzp5rcTvU', title:'טיפ אינפי'}, {id:'4xDzrrm1vbc', title:'פרודוקטיביות'}
 ];
 
-function init(){
-    loadData();
-    renderAll();
-}
+function init(){ loadData(); renderAll(); }
 
 function loadData(){
-    const t=localStorage.getItem('vday_tasks');
-    tasks=t?JSON.parse(t):[{title:'תרגיל C++ ראשון', day:today, subject:'C++', done:false}];
+    const t=localStorage.getItem('vday_tasks'); tasks=t?JSON.parse(t):[];
     videoMins=parseInt(localStorage.getItem('vday_mins')||"20");
 }
 
@@ -181,26 +181,17 @@ function saveData(){
 }
 
 function renderAll(){
-    updateVideoUI();
-    renderWeek();
-    renderTasks();
-    updatePace();
-    saveData();
-}
-
-function updateVideoUI(){
-    document.getElementById('v-count').textContent = videoMins <= 0 ? "0 דקות" : `${videoMins} דקות`;
+    document.getElementById('v-count').textContent = videoMins + " דקות";
+    renderWeek(); renderTasks(); updatePace(); saveData();
 }
 
 function renderWeek(){
     const g=document.getElementById('week-grid'); g.innerHTML='';
     DAYS.slice(0,6).forEach((d,i)=>{
-        const col=document.createElement('div');
-        col.className='day-col'+(i===today?' today':'');
-        col.innerHTML=`<div style="font-size:11px; font-weight:bold; color:var(--sub); text-align:center; margin-bottom:5px">${d}</div>`;
+        const col=document.createElement('div'); col.className='day-col'+(i===today?' today':'');
+        col.innerHTML=`<div style="font-size:10px; font-weight:bold; color:var(--sub); text-align:center; margin-bottom:5px">${d}</div>`;
         tasks.filter(t=>t.day==i && !t.done).forEach(t=>{
-            const m=document.createElement('div'); m.className='mini-task'; m.textContent=t.title;
-            col.appendChild(m);
+            const m=document.createElement('div'); m.className='mini-task'; m.textContent=t.title; col.appendChild(m);
         });
         g.appendChild(col);
     });
@@ -211,17 +202,15 @@ function renderTasks(){
     tasks.filter(t=>!t.done).forEach((t,idx)=>{
         const card=document.createElement('div'); card.className='task-card';
         card.innerHTML=`
-            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:15px">
-                <div><h3 style="color:#2d2360">${t.title}</h3><small style="color:var(--sub)">${t.subject} · יום ${DAYS[t.day]}</small></div>
+            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px">
+                <div><h3 style="font-size:16px">${t.title}</h3><small>${t.subject}</small></div>
                 <button class="btn" style="background:#2ecc71" onclick="doneTask(${tasks.indexOf(t)})">סיימתי! 🎉</button>
             </div>
-            <div class="ai-header"><div class="ai-icon">G</div><div style="font-size:13px; font-weight:bold; color:var(--accent)">העוזר האישי (Gemini)</div></div>
-            <div class="chat-box" id="chat-${idx}"><div class="bubble-ai">היי חנה, אני כאן לעזור עם ${t.subject}. מה נפתור עכשיו?</div></div>
-            <div style="display:flex; gap:8px">
-                <input id="in-${idx}" style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:13px" placeholder="שאלי אותי..." onkeydown="if(event.key==='Enter')sendChat(${idx})">
+            <div class="chat-box" id="chat-${idx}"><div class="bubble-ai">היי חנה, מה נפתור ב-${t.subject}?</div></div>
+            <div style="display:flex; gap:5px">
+                <input id="in-${idx}" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border)" placeholder="שאלי משהו..." onkeydown="if(event.key==='Enter')sendChat(${idx})">
                 <button class="btn" onclick="sendChat(${idx})">שלחי</button>
-            </div>
-        `;
+            </div>`;
         area.appendChild(card);
     });
 }
@@ -234,20 +223,21 @@ function sendChat(idx){
     setTimeout(()=>{
         const r=document.createElement('div'); r.className='bubble-ai';
         const q=encodeURIComponent(v);
-        r.innerHTML=`
-            <div>בואי נפתור את זה לעומק ב-AI:</div>
-            <div style="display:flex; gap:5px; margin-top:8px">
-                <button class="btn" style="font-size:10px; background:#4285f4" onclick="window.open('https://gemini.google.com/app?q=${q}','_blank')">שאל את Gemini</button>
-                <button class="btn" style="font-size:10px; background:#10a37f" onclick="window.open('https://chatgpt.com/?q=${q}','_blank')">שאל את GPT</button>
-            </div>`;
+        r.innerHTML=`בואי נשאל את ה-AI:<br>
+            <button class="btn" style="font-size:10px;margin-top:5px;background:#4285f4" onclick="window.open('https://gemini.google.com/app?q=${q}','_blank')">Gemini</button>
+            <button class="btn" style="font-size:10px;margin-top:5px;background:#10a37f" onclick="window.open('https://chatgpt.com/?q=${q}','_blank')">GPT</button>`;
         box.appendChild(r); box.scrollTop=box.scrollHeight;
     },600);
 }
 
+function selectMusic(el, name){
+    document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('bg-player').src = ytLinks[name];
+}
+
 function doneTask(i){
-    tasks[i].done=true;
-    videoMins+=5;
-    document.getElementById('v-msg').textContent=`הרווחת 5 דקות צפייה מתנה! סך הכל: ${videoMins} דקות.`;
+    tasks[i].done=true; videoMins+=5;
     document.getElementById('victory').classList.add('show');
     renderAll();
 }
@@ -259,30 +249,22 @@ function addTask(){
 }
 
 function showVideoMenu(){
-    if(videoMins<=0){ alert("חנה, התקציב נגמר! סיימי משימה כדי לקבל עוד זמן."); return; }
-    refreshVideos();
+    if(videoMins<=0){ alert("התקציב נגמר!"); return; }
+    const list=document.getElementById('v-actions'); list.innerHTML='';
+    videoPool.sort(()=>0.5-Math.random()).slice(0,2).forEach(v=>{
+        const b=document.createElement('button'); b.className='btn'; b.style.fontSize='10px';
+        b.textContent=v.title; b.onclick=()=>openCinema(v.id); list.appendChild(b);
+    });
     document.getElementById('v-banner').classList.add('show');
 }
 
-function refreshVideos(){
-    const list=document.getElementById('v-actions'); list.innerHTML='';
-    const selected=videoPool.sort(()=>0.5-Math.random()).slice(0,2);
-    selected.forEach(v=>{
-        const b=document.createElement('button'); b.className='v-btn'; b.textContent=`צפי ב: ${v.title} (5 דק')`;
-        b.onclick=()=>openCinema(v.id, 5);
-        list.appendChild(b);
-    });
-    const re=document.createElement('button'); re.className='v-btn'; re.style.background='rgba(0,0,0,0.2)'; re.textContent='🔄 רענון';
-    re.onclick=refreshVideos; list.appendChild(re);
-}
-
-function openCinema(id, cost){
-    if(videoMins<cost)return;
-    videoMins-=cost;
+function openCinema(id){
+    if(videoMins < 5) return;
+    videoMins -= 5;
     document.getElementById('c-player').src=`https://www.youtube.com/embed/${id}?autoplay=1`;
     document.getElementById('cinema-wrap').style.display='block';
     document.getElementById('v-banner').classList.remove('show');
-    updateVideoUI(); saveData();
+    renderAll();
 }
 
 function closeCinema(){
@@ -294,7 +276,7 @@ function updatePace(){
     const total=tasks.length, done=tasks.filter(t=>t.done).length;
     const pct=total>0?(done/total)*100:0;
     document.getElementById('p-bar').style.width=pct+'%';
-    document.getElementById('p-txt').textContent=pct>=70?"קצב מעולה!":pct>=30?"בדרך הנכונה":"בואי נתחיל עבודה";
+    document.getElementById('p-txt').textContent=pct>=70?"קצב מעולה!":pct>=30?"בדרך הנכונה":"בואי נתחיל";
 }
 
 init();
