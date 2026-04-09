@@ -336,16 +336,45 @@ function selectMusic(el,name){
   document.getElementById('main-yt-player').src = ytLinks[name];
 }
 
-function sendChat(input,idx){
-  const v=input.value.trim(); if(!v)return;
-  const chat=document.getElementById('chat-'+idx);
-  const me=document.createElement('div'); me.className='chat-me'; me.textContent=v;
-  chat.appendChild(me); input.value='';
-  setTimeout(()=>{
-    const reply=document.createElement('div'); reply.className='chat-bubble';
-    reply.textContent='שאלה מצוינת! כדי לפתור לעומק, כדאי להעתיק את זה ל-Claude.ai עם החומר שלך.';
-    chat.appendChild(reply); chat.scrollTop=chat.scrollHeight;
-  },600);
+function sendChat(input, idx) {
+  const v = input.value.trim();
+  if (!v) return;
+
+  const chat = document.getElementById('chat-' + idx);
+  
+  // הוספת ההודעה שלך למסך
+  const me = document.createElement('div');
+  me.className = 'chat-me';
+  me.textContent = v;
+  chat.appendChild(me);
+  input.value = '';
+
+  // התגובה שלי עם "כפתורי הקסם"
+  setTimeout(() => {
+    const reply = document.createElement('div');
+    reply.className = 'chat-bubble';
+    
+    // ניקוי תווים מיוחדים כדי שהקישור לא יישבר
+    const safeMsg = encodeURIComponent(v);
+    
+    reply.innerHTML = `
+      <div style="margin-bottom:8px; font-weight:bold; color:var(--accent)">שאלה מצוינת! בואי נפתור אותה:</div>
+      <div style="font-size:12px; margin-bottom:10px; color:var(--sub)">לחצי על הכפתור כדי לשלוח את השאלה ישירות ל-AI:</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn" style="background:#4285f4; font-size:11px; padding:6px 12px" 
+                onclick="window.open('https://gemini.google.com/app?q=' + '${safeMsg}', '_blank')">
+          שאל את Gemini 🚀
+        </button>
+        <button class="btn" style="background:#10a37f; font-size:11px; padding:6px 12px" 
+                onclick="window.open('https://chatgpt.com/?q=' + '${safeMsg}', '_blank')">
+          שאל את GPT 🤖
+        </button>
+      </div>
+    `;
+    
+    chat.appendChild(reply);
+    chat.scrollTop = chat.scrollHeight;
+  }, 600);
 }
 
 /* --- HELPERS --- */
