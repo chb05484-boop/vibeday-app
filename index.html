@@ -7,39 +7,63 @@
 <style>
 /* --- עיצוב בסיסי ותשתית --- */
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;min-height:100vh}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;min-height:100vh;overflow-x:hidden}
 :root{--accent:#7F77DD;--card:#fff;--border:#e0d8f8;--sub:#9b8ec4;--bg2:#ede8ff;--input:#faf8ff}
 
 /* --- פריסת עמוד --- */
 .layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
-.sidebar{background:#2d2360;color:#fff;padding:1.5rem 1rem;display:flex;flex-direction:column;gap:1rem;position:sticky;top:0;height:100vh}
-.main{padding:1.5rem;overflow-y:auto}
 
-/* --- סיידבר --- */
-.s-logo{font-size:22px;font-weight:bold;margin-bottom:.5rem}.s-logo span{color:#b197fc}
-.pace-card{background:#3d3380;border-radius:12px;padding:12px;margin-bottom:.5rem}
-.pace-bar-wrap{background:#2d2360;border-radius:20px;height:14px;overflow:hidden;margin:8px 0}
-.pace-bar{height:100%;transition:width .5s}
-.video-timer-card{background:linear-gradient(135deg, #534AB7, #7F77DD); border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition:transform 0.2s;}
-.video-timer-card:hover{transform:scale(1.02);}
-.v-mins-num{font-size:24px; font-weight:bold; display:block;}
-    .sidebar {
+/* --- סיידבר מתוקן --- */
+.sidebar {
     background: #2d2360;
     color: #fff;
     padding: 1.5rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
     position: sticky;
     top: 0;
     height: 100vh;
-    overflow-y: auto; /* השורה שתציל את הנגן שלך */
+    z-index: 100;
+}
+
+/* אזור נגלול פנימי למשימות */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding-right: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* עיצוב פס גלילה עדין לסיידבר */
+.sidebar-content::-webkit-scrollbar { width: 4px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: #3d3380; border-radius: 10px; }
+
+.s-logo{font-size:22px;font-weight:bold;margin-bottom:1rem}.s-logo span{color:#b197fc}
+.pace-card{background:#3d3380;border-radius:12px;padding:12px}
+.pace-bar-wrap{background:#2d2360;border-radius:20px;height:14px;overflow:hidden;margin:8px 0}
+.pace-bar{height:100%;transition:width .5s}
+.video-timer-card{background:linear-gradient(135deg, #534AB7, #7F77DD); border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition:transform 0.2s;}
+.video-timer-card:hover{transform:scale(1.02);}
+.v-mins-num{font-size:24px; font-weight:bold; display:block;}
+
+/* נגן דבוק לתחתית */
+.sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    background: #2d2360;
+    padding-top: 15px;
+    border-top: 1px solid #3d3380;
+    margin-top: auto;
 }
 
 /* --- ניהול משימות --- */
 .s-add input, .s-add select{padding:8px; border-radius:8px; border:none; background:#3d3380; color:#fff; width:100%; margin-bottom:5px; font-size:13px}
 .btn{padding:8px 15px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold}
 
+.main{padding:1.5rem;overflow-y:auto}
 .week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:1.5rem}
 .day-col{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px; min-height:100px}
 .day-col.today{border:2px solid var(--accent); background:#faf8ff}
@@ -53,11 +77,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;mi
 .bubble-ai{background:#fff; padding:10px; border-radius:10px; font-size:13px; margin-bottom:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05)}
 .bubble-me{background:var(--accent); color:#fff; padding:10px; border-radius:10px; font-size:13px; margin-bottom:8px; margin-right:auto; width:fit-content; max-width:80%}
 
-/* --- קולנוע (סינמה) --- */
+/* --- קולנוע וסרטונים --- */
 #cinema-wrap{display:none; background:#000; border-radius:16px; overflow:hidden; margin-bottom:20px; position:relative; aspect-ratio:16/9}
 .close-cinema{position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.3); border:none; color:#fff; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10}
-
-/* --- באנר המלצות --- */
 .video-banner{background:#D85A30; color:#fff; padding:15px; border-radius:14px; margin-bottom:15px; display:none; flex-direction:column; gap:10px}
 .video-banner.show{display:flex}
 .video-actions{display:flex; gap:8px; flex-wrap:wrap}
@@ -75,27 +97,29 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;mi
     <div class="sidebar">
         <div class="s-logo">Vibe<span>Day</span></div>
         
-        <div class="pace-card">
-            <div style="font-size:12px; color:#c4b8f8">קצב התקדמות</div>
-            <div class="pace-bar-wrap"><div id="p-bar" class="pace-bar" style="width:0%; background:#2ecc71"></div></div>
-            <div id="p-txt" style="font-size:13px; font-weight:bold">מתחילים עבודה!</div>
+        <div class="sidebar-content">
+            <div class="pace-card">
+                <div style="font-size:12px; color:#c4b8f8">קצב התקדמות</div>
+                <div class="pace-bar-wrap"><div id="p-bar" class="pace-bar" style="width:0%; background:#2ecc71"></div></div>
+                <div id="p-txt" style="font-size:13px; font-weight:bold">מתחילים עבודה!</div>
+            </div>
+
+            <div class="video-timer-card" onclick="showVideoMenu()">
+                <span style="font-size:11px; opacity:0.9">תקציב צפייה יומי</span>
+                <span class="v-mins-num" id="v-count">20 דקות</span>
+                <span style="font-size:10px; opacity:0.8">לחצי לפתיחת סרטונים</span>
+            </div>
+
+            <div class="s-add">
+                <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">הוסיפי משימה</div>
+                <input id="nt" placeholder="שם המשימה">
+                <select id="nd"><option value="0">ראשון</option><option value="1">שני</option><option value="2">שלישי</option><option value="3">רביעי</option><option value="4">חמישי</option><option value="5">שישי</option></select>
+                <input id="ns" placeholder="מקצוע (C++, אינפי)">
+                <button class="btn" style="width:100%" onclick="addTask()">+ הוספה</button>
+            </div>
         </div>
 
-        <div class="video-timer-card" onclick="showVideoMenu()">
-            <span style="font-size:11px; opacity:0.9">תקציב צפייה יומי</span>
-            <span class="v-mins-num" id="v-count">20 דקות</span>
-            <span style="font-size:10px; opacity:0.8">לחצי לפתיחת סרטונים</span>
-        </div>
-
-        <div class="s-add">
-            <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">הוסיפי משימה</div>
-            <input id="nt" placeholder="שם המשימה">
-            <select id="nd"><option value="0">ראשון</option><option value="1">שני</option><option value="2">שלישי</option><option value="3">רביעי</option><option value="4">חמישי</option><option value="5">שישי</option></select>
-            <input id="ns" placeholder="מקצוע (C++, אינפי)">
-            <button class="btn" style="width:100%" onclick="addTask()">+ הוספה</button>
-        </div>
-
-        <div style="margin-top:auto">
+        <div class="sidebar-footer">
             <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">נגן רקע</div>
             <iframe id="bg-player" width="100%" height="100" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0" referrerpolicy="strict-origin-when-cross-origin"></iframe>
         </div>
