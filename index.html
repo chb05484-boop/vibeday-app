@@ -107,7 +107,18 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
                 <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">משימה חדשה</div>
                 <input id="nt" placeholder="שם המשימה">
                 <input type="date" id="nd" style="color-scheme: dark;" title="תאריך הגשה סופי">
-                <input id="ns" placeholder="מקצוע (C++, אינפי)">
+                
+                <select id="ns" onchange="checkOtherSubject()">
+                    <option value="" disabled selected>בחרי מקצוע...</option>
+                    <option value="אינפי">אינפי</option>
+                    <option value="מבנה המחשב">מבנה המחשב</option>
+                    <option value="פול סטאק">פול סטאק</option>
+                    <option value="מבנה נתונים">מבנה נתונים</option>
+                    <option value="C++">C++</option>
+                    <option value="אחר">אחר (הקלידי)</option>
+                </select>
+                <input id="ns-other" placeholder="מקצוע אחר..." style="display:none;">
+
                 <button class="btn" style="width:100%" onclick="addTask()">+ הוספה</button>
             </div>
         </div>
@@ -188,7 +199,6 @@ function renderWeek(){
     for(let i=0; i<7; i++){
         const d = new Date();
         d.setDate(d.getDate() + i);
-        // יצירת מחרוזת תאריך בפורמט התואם ל- input type="date"
         const dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
         const displayDate = d.toLocaleDateString('he-IL', {weekday: 'short', day: 'numeric', month: 'numeric'});
 
@@ -212,7 +222,7 @@ function renderTasks(){
                 <div><h3 style="font-size:16px">${t.title}</h3><small>${t.subject}</small></div>
                 <button class="btn" style="background:#2ecc71" onclick="doneTask(${tasks.indexOf(t)})">סיימתי! 🎉</button>
             </div>
-            <div class="chat-box" id="chat-${idx}"><div class="bubble-ai">היי חנה, מה נפתור ב-${t.subject}?</div></div>
+            <div class="chat-box" id="chat-${idx}"><div class="bubble-ai">היי, מה נפתור ב-${t.subject}?</div></div>
             <div style="display:flex; gap:5px">
                 <input id="in-${idx}" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border)" placeholder="שאלי משהו..." onkeydown="if(event.key==='Enter')sendChat(${idx})">
                 <button class="btn" onclick="sendChat(${idx})">שלחי</button>
@@ -248,12 +258,36 @@ function doneTask(i){
     renderAll();
 }
 
+function checkOtherSubject() {
+    const select = document.getElementById('ns');
+    const otherInput = document.getElementById('ns-other');
+    if (select.value === 'אחר') {
+        otherInput.style.display = 'block';
+    } else {
+        otherInput.style.display = 'none';
+    }
+}
+
 function addTask(){
     const t=document.getElementById('nt').value;
     const d=document.getElementById('nd').value;
-    if(!t || !d) return; // עכשיו חובה גם להזין תאריך
-    tasks.push({title:t, day:d, subject:document.getElementById('ns').value||'כללי', done:false});
+    if(!t || !d) return; 
+
+    let subj = document.getElementById('ns').value;
+    if (subj === 'אחר') {
+        subj = document.getElementById('ns-other').value || 'כללי';
+    } else if (!subj) {
+        subj = 'כללי';
+    }
+
+    tasks.push({title:t, day:d, subject:subj, done:false});
+    
+    // איפוס שדות
     document.getElementById('nt').value=''; 
+    document.getElementById('ns').selectedIndex = 0;
+    document.getElementById('ns-other').value = '';
+    document.getElementById('ns-other').style.display = 'none';
+    
     renderAll();
 }
 
