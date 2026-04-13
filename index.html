@@ -12,7 +12,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 
 .layout{display:grid;grid-template-columns:280px 1fr;height:100vh}
 
-/* --- סיידבר משופר (הפתרון לנגן) --- */
+/* --- סיידבר --- */
 .sidebar {
     background: #2d2360;
     color: #fff;
@@ -48,15 +48,25 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 .m-chip {
     padding: 4px 8px; border-radius: 10px; border: 1px solid #534AB7;
     font-size: 10px; cursor: pointer; background: transparent; color: #c4b8f8;
+    transition: all 0.2s;
 }
 .m-chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+#bg-player-container {
+    width: 100%;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+}
 
 /* --- אלמנטים נוספים --- */
 .pace-card{background:#3d3380;border-radius:12px;padding:12px;margin-bottom:5px}
 .pace-bar-wrap{background:#2d2360;border-radius:20px;height:12px;overflow:hidden;margin:6px 0}
 .pace-bar{height:100%;transition:width .5s}
 
-.video-timer-card{background:linear-gradient(135deg, #534AB7, #7F77DD); border-radius:12px; padding:12px; text-align:center; cursor:pointer}
+.video-timer-card{background:linear-gradient(135deg, #534AB7, #7F77DD); border-radius:12px; padding:12px; text-align:center; cursor:pointer; transition: transform 0.2s;}
+.video-timer-card:hover{transform: scale(1.02);}
 .v-mins-num{font-size:22px; font-weight:bold; display:block;}
 
 .s-add input, .s-add select{padding:8px; border-radius:8px; border:none; background:#3d3380; color:#fff; width:100%; margin-bottom:5px; font-size:12px}
@@ -132,7 +142,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
                 <button class="m-chip" onclick="selectMusic(this,'Classical')">קלאסי</button>
                 <button class="m-chip" onclick="selectMusic(this,'Focus')">Focus</button>
             </div>
-            <iframe id="bg-player" width="100%" height="80" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0"></iframe>
+            <div id="bg-player-container"><div id="bg-player"></div></div>
         </div>
     </div>
 
@@ -161,23 +171,61 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
     </div>
 </div>
 
+<script src="https://www.youtube.com/iframe_api"></script>
+
 <script>
+// === משתנים גלובליים ===
 let videoMins=20;
 let tasks=[];
+let ytPlayer;
 
-const ytLinks = {
-    'Lo-fi': 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1',
-    'Jazz': 'https://www.youtube.com/embed/Dx5qFachd3A?autoplay=1',
-    'Nature': 'https://www.youtube.com/embed/eKFTSSKCzWA?autoplay=1',
-    'Classical': 'https://www.youtube.com/embed/mIYzp5rcTvU?autoplay=1',
-    'Focus': 'https://www.youtube.com/embed/4xDzrrm1vbc?autoplay=1'
+const vids = {
+    'Lo-fi': 'jfKfPfyJRdk',
+    'Jazz': 'Dx5qFachd3A',
+    'Nature': 'eKFTSSKCzWA',
+    'Classical': 'mIYzp5rcTvU',
+    'Focus': '4xDzrrm1vbc'
 };
 
 const videoPool = [
-    {id:'jfKfPfyJRdk', title:'אתגר C++'}, {id:'Dx5qFachd3A', title:'גאז רגוע'}, {id:'mIYzp5rcTvU', title:'טיפ אינפי'}, {id:'4xDzrrm1vbc', title:'פרודוקטיביות'}
+    {id:'jfKfPfyJRdk', title:'אתגר C++'}, 
+    {id:'Dx5qFachd3A', title:'גאז רגוע'}, 
+    {id:'mIYzp5rcTvU', title:'טיפ אינפי'}, 
+    {id:'4xDzrrm1vbc', title:'פרודוקטיביות'}
 ];
 
-function init(){ loadData(); renderAll(); }
+// === אתחול נגן היוטיוב ===
+function onYouTubeIframeAPIReady() {
+    ytPlayer = new YT.Player('bg-player', {
+        height: '80',
+        width: '100%',
+        videoId: vids['Lo-fi'],
+        playerVars: {
+            'autoplay': 0, // מונע בעיות חסימת דפדפן, מאפשר למשתמש להפעיל מתי שנוח
+            'controls': 1, // מאפשר שליטה בווליום
+            'loop': 1,
+            'playlist': vids['Lo-fi']
+        }
+    });
+}
+
+function selectMusic(el, name){
+    document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    
+    if(ytPlayer && ytPlayer.loadVideoById){
+        ytPlayer.loadVideoById({
+            videoId: vids[name],
+            startSeconds: 0
+        });
+    }
+}
+
+// === אתחול כללי של האפליקציה ===
+function init(){ 
+    loadData(); 
+    renderAll(); 
+}
 
 function loadData(){
     const t=localStorage.getItem('vday_tasks'); tasks=t?JSON.parse(t):[];
@@ -191,7 +239,10 @@ function saveData(){
 
 function renderAll(){
     document.getElementById('v-count').textContent = videoMins + " דקות";
-    renderWeek(); renderTasks(); updatePace(); saveData();
+    renderWeek(); 
+    renderTasks(); 
+    updatePace(); 
+    saveData();
 }
 
 function renderWeek(){
@@ -244,12 +295,6 @@ function sendChat(idx){
             <button class="btn" style="font-size:10px;margin-top:5px;background:#10a37f" onclick="window.open('https://chatgpt.com/?q=${q}','_blank')">GPT</button>`;
         box.appendChild(r); box.scrollTop=box.scrollHeight;
     },600);
-}
-
-function selectMusic(el, name){
-    document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('on'));
-    el.classList.add('on');
-    document.getElementById('bg-player').src = ytLinks[name];
 }
 
 function doneTask(i){
@@ -307,6 +352,12 @@ function openCinema(id){
     document.getElementById('c-player').src=`https://www.youtube.com/embed/${id}?autoplay=1`;
     document.getElementById('cinema-wrap').style.display='block';
     document.getElementById('v-banner').classList.remove('show');
+    
+    // אם מוזיקת הרקע פועלת, נעצור אותה כשפותחים וידאו הפסקה
+    if(ytPlayer && ytPlayer.pauseVideo) {
+        ytPlayer.pauseVideo();
+    }
+    
     renderAll();
 }
 
@@ -322,6 +373,7 @@ function updatePace(){
     document.getElementById('p-txt').textContent=pct>=70?"קצב מעולה!":pct>=30?"בדרך הנכונה":"בואי נתחיל";
 }
 
+// התחלת האפליקציה
 init();
 </script>
 </body>
