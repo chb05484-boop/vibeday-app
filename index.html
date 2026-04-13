@@ -52,6 +52,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 }
 .m-chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* --- נגן יוטיוב מתוקן עם פרופורציות נכונות --- */
+#bg-player-container {
+    width: 100%;
+    aspect-ratio: 16/9; /* שומר על יחס וידאו נכון */
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
 /* --- אלמנטים נוספים --- */
 .pace-card{background:#3d3380;border-radius:12px;padding:12px;margin-bottom:5px}
 .pace-bar-wrap{background:#2d2360;border-radius:20px;height:12px;overflow:hidden;margin:6px 0}
@@ -128,10 +139,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
         </div>
 
         <div class="s-footer">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                <div style="font-size:10px; color:#9b8ec4;">מוזיקת ריכוז:</div>
-                <button id="toggle-music-btn" class="btn" style="background:#2ecc71; padding:5px 10px; font-size:11px;" onclick="toggleMusic()">▶ הפעלי מוזיקה</button>
-            </div>
+            <div style="font-size:10px; color:#9b8ec4; margin-bottom:10px;">מוזיקת ריכוז:</div>
             
             <div class="music-selector">
                 <button class="m-chip on" onclick="selectMusic(this,'Lo-fi')">Lo-fi</button>
@@ -140,7 +148,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
                 <button class="m-chip" onclick="selectMusic(this,'Classical')">קלאסי</button>
                 <button class="m-chip" onclick="selectMusic(this,'Focus')">Focus</button>
             </div>
-            <div id="bg-player-container" style="height:0; overflow:hidden;"><div id="bg-player"></div></div>
+            
+            <div id="bg-player-container"><div id="bg-player"></div></div>
         </div>
     </div>
 
@@ -182,7 +191,6 @@ let videoMins=20;
 let tasks=[];
 let ytPlayer;
 let weekOffset = 0; 
-let isPlaying = false;
 
 const vids = {
     'Lo-fi': 'jfKfPfyJRdk',
@@ -201,35 +209,16 @@ const videoPool = [
 
 function onYouTubeIframeAPIReady() {
     ytPlayer = new YT.Player('bg-player', {
-        height: '0',
-        width: '0',
+        height: '100%',
+        width: '100%',
         videoId: vids['Lo-fi'],
         playerVars: {
             'autoplay': 0, 
-            'controls': 0, 
+            'controls': 1, 
             'loop': 1,
             'playlist': vids['Lo-fi']
         }
     });
-}
-
-function toggleMusic() {
-    if(!ytPlayer || !ytPlayer.playVideo) {
-        alert("הנגן עדיין נטען, אנא המתיני שניה ונסה שוב.");
-        return;
-    }
-    const btn = document.getElementById('toggle-music-btn');
-    if(isPlaying) {
-        ytPlayer.pauseVideo();
-        btn.innerHTML = '▶ הפעלי מוזיקה';
-        btn.style.background = '#2ecc71';
-        isPlaying = false;
-    } else {
-        ytPlayer.playVideo();
-        btn.innerHTML = '⏸ עצרי מוזיקה';
-        btn.style.background = '#D85A30';
-        isPlaying = true;
-    }
 }
 
 function selectMusic(el, name){
@@ -241,12 +230,6 @@ function selectMusic(el, name){
             videoId: vids[name],
             startSeconds: 0
         });
-        
-        // מעדכן את הכפתור למצב "פועל" כשמחליפים שיר
-        const btn = document.getElementById('toggle-music-btn');
-        btn.innerHTML = '⏸ עצרי מוזיקה';
-        btn.style.background = '#D85A30';
-        isPlaying = true;
     }
 }
 
@@ -389,8 +372,8 @@ function openCinema(id){
     document.getElementById('cinema-wrap').style.display='block';
     document.getElementById('v-banner').classList.remove('show');
     
-    if(isPlaying && ytPlayer && ytPlayer.pauseVideo) {
-        toggleMusic(); // מעדכן את הכפתור לעצור כדי שלא תהיה כפילות סאונד
+    if(ytPlayer && ytPlayer.pauseVideo) {
+        ytPlayer.pauseVideo();
     }
     
     renderAll();
