@@ -37,10 +37,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 .s-scrollable::-webkit-scrollbar { width: 4px; }
 .s-scrollable::-webkit-scrollbar-thumb { background: #3d3380; border-radius: 10px; }
 
-/* הנגן והמוזיקה - דבוק לתחתית */
+/* הנגן והמוזיקה - דבוק לתחתית ועלה קצת למעלה כבקשתך */
 .s-footer {
     background: #2d2360;
-    padding: 1rem;
+    padding: 1rem 1rem 2rem 1rem; /* הוגדל הריווח למטה */
     border-top: 1px solid #3d3380;
 }
 
@@ -74,6 +74,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 
 /* --- מרכז המסך --- */
 .main{padding:1.5rem;overflow-y:auto;background:#f5f0ff}
+.week-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px}
+.week-nav .btn{font-size:11px; padding:5px 10px; background:var(--sub)}
 .week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:1.5rem}
 .day-col{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px; min-height:100px}
 .day-col.today{border:2px solid var(--accent); background:#faf8ff}
@@ -157,6 +159,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
             <div id="v-actions" style="display:flex;gap:8px;flex-wrap:wrap"></div>
         </div>
 
+        <div class="week-nav">
+            <button class="btn" onclick="changeWeek(-1)">❮ קודם</button>
+            <span style="font-weight:bold; font-size:14px; color:var(--accent);">לוח זמנים</span>
+            <button class="btn" onclick="changeWeek(1)">הבא ❯</button>
+        </div>
+
         <div class="week-grid" id="week-grid"></div>
         <div id="tasks-area"></div>
     </div>
@@ -174,10 +182,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-// === משתנים גלובליים ===
 let videoMins=20;
 let tasks=[];
 let ytPlayer;
+let weekOffset = 0; // משתנה לניווט בין השבועות
 
 const vids = {
     'Lo-fi': 'jfKfPfyJRdk',
@@ -194,15 +202,14 @@ const videoPool = [
     {id:'4xDzrrm1vbc', title:'פרודוקטיביות'}
 ];
 
-// === אתחול נגן היוטיוב ===
 function onYouTubeIframeAPIReady() {
     ytPlayer = new YT.Player('bg-player', {
         height: '80',
         width: '100%',
         videoId: vids['Lo-fi'],
         playerVars: {
-            'autoplay': 0, // מונע בעיות חסימת דפדפן, מאפשר למשתמש להפעיל מתי שנוח
-            'controls': 1, // מאפשר שליטה בווליום
+            'autoplay': 0, 
+            'controls': 1, 
             'loop': 1,
             'playlist': vids['Lo-fi']
         }
@@ -221,7 +228,6 @@ function selectMusic(el, name){
     }
 }
 
-// === אתחול כללי של האפליקציה ===
 function init(){ 
     loadData(); 
     renderAll(); 
@@ -245,16 +251,23 @@ function renderAll(){
     saveData();
 }
 
+function changeWeek(diff) {
+    weekOffset += diff;
+    renderWeek();
+}
+
 function renderWeek(){
     const g=document.getElementById('week-grid'); g.innerHTML='';
     for(let i=0; i<7; i++){
         const d = new Date();
-        d.setDate(d.getDate() + i);
+        // הוספת הסטת השבוע
+        d.setDate(d.getDate() + i + (weekOffset * 7));
         const dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
         const displayDate = d.toLocaleDateString('he-IL', {weekday: 'short', day: 'numeric', month: 'numeric'});
 
         const col=document.createElement('div');
-        col.className='day-col' + (i===0?' today':'');
+        // מסמן את היום כהיום רק אם אנחנו בשבוע הנוכחי (offset=0) וזה היום הראשון (i=0)
+        col.className='day-col' + ((i===0 && weekOffset===0)?' today':'');
         col.innerHTML=`<div style="font-size:10px; font-weight:bold; color:var(--sub); text-align:center; margin-bottom:5px">${displayDate}</div>`;
 
         tasks.filter(t=>t.day===dateStr && !t.done).forEach(t=>{
@@ -268,9 +281,14 @@ function renderTasks(){
     const area=document.getElementById('tasks-area'); area.innerHTML='';
     tasks.filter(t=>!t.done).forEach((t,idx)=>{
         const card=document.createElement('div'); card.className='task-card';
+        // עיצוב תאריך היעד להצגה ברורה בכרטיסייה
+        const formattedDate = t.day.split('-').reverse().join('/');
         card.innerHTML=`
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px">
-                <div><h3 style="font-size:16px">${t.title}</h3><small>${t.subject}</small></div>
+                <div>
+                    <h3 style="font-size:16px">${t.title}</h3>
+                    <small style="color:var(--sub); font-weight:bold;">${t.subject} | יעד: ${formattedDate}</small>
+                </div>
                 <button class="btn" style="background:#2ecc71" onclick="doneTask(${tasks.indexOf(t)})">סיימתי! 🎉</button>
             </div>
             <div class="chat-box" id="chat-${idx}"><div class="bubble-ai">היי, מה נפתור ב-${t.subject}?</div></div>
@@ -327,7 +345,6 @@ function addTask(){
 
     tasks.push({title:t, day:d, subject:subj, done:false});
     
-    // איפוס שדות
     document.getElementById('nt').value=''; 
     document.getElementById('ns').selectedIndex = 0;
     document.getElementById('ns-other').value = '';
@@ -353,7 +370,6 @@ function openCinema(id){
     document.getElementById('cinema-wrap').style.display='block';
     document.getElementById('v-banner').classList.remove('show');
     
-    // אם מוזיקת הרקע פועלת, נעצור אותה כשפותחים וידאו הפסקה
     if(ytPlayer && ytPlayer.pauseVideo) {
         ytPlayer.pauseVideo();
     }
@@ -373,7 +389,6 @@ function updatePace(){
     document.getElementById('p-txt').textContent=pct>=70?"קצב מעולה!":pct>=30?"בדרך הנכונה":"בואי נתחיל";
 }
 
-// התחלת האפליקציה
 init();
 </script>
 </body>
