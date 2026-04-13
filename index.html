@@ -106,7 +106,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
             <div class="s-add">
                 <div style="font-size:11px; color:#9b8ec4; margin-bottom:5px">משימה חדשה</div>
                 <input id="nt" placeholder="שם המשימה">
-                <select id="nd"><option value="0">ראשון</option><option value="1">שני</option><option value="2">שלישי</option><option value="3">רביעי</option><option value="4">חמישי</option><option value="5">שישי</option></select>
+                <input type="date" id="nd" style="color-scheme: dark;" title="תאריך הגשה סופי">
                 <input id="ns" placeholder="מקצוע (C++, אינפי)">
                 <button class="btn" style="width:100%" onclick="addTask()">+ הוספה</button>
             </div>
@@ -151,8 +151,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 </div>
 
 <script>
-const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-const today=new Date().getDay();
 let videoMins=20;
 let tasks=[];
 
@@ -187,14 +185,22 @@ function renderAll(){
 
 function renderWeek(){
     const g=document.getElementById('week-grid'); g.innerHTML='';
-    DAYS.slice(0,6).forEach((d,i)=>{
-        const col=document.createElement('div'); col.className='day-col'+(i===today?' today':'');
-        col.innerHTML=`<div style="font-size:10px; font-weight:bold; color:var(--sub); text-align:center; margin-bottom:5px">${d}</div>`;
-        tasks.filter(t=>t.day==i && !t.done).forEach(t=>{
+    for(let i=0; i<7; i++){
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        // יצירת מחרוזת תאריך בפורמט התואם ל- input type="date"
+        const dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
+        const displayDate = d.toLocaleDateString('he-IL', {weekday: 'short', day: 'numeric', month: 'numeric'});
+
+        const col=document.createElement('div');
+        col.className='day-col' + (i===0?' today':'');
+        col.innerHTML=`<div style="font-size:10px; font-weight:bold; color:var(--sub); text-align:center; margin-bottom:5px">${displayDate}</div>`;
+
+        tasks.filter(t=>t.day===dateStr && !t.done).forEach(t=>{
             const m=document.createElement('div'); m.className='mini-task'; m.textContent=t.title; col.appendChild(m);
         });
         g.appendChild(col);
-    });
+    }
 }
 
 function renderTasks(){
@@ -243,9 +249,12 @@ function doneTask(i){
 }
 
 function addTask(){
-    const t=document.getElementById('nt').value; if(!t)return;
-    tasks.push({title:t, day:parseInt(document.getElementById('nd').value), subject:document.getElementById('ns').value||'כללי', done:false});
-    document.getElementById('nt').value=''; renderAll();
+    const t=document.getElementById('nt').value;
+    const d=document.getElementById('nd').value;
+    if(!t || !d) return; // עכשיו חובה גם להזין תאריך
+    tasks.push({title:t, day:d, subject:document.getElementById('ns').value||'כללי', done:false});
+    document.getElementById('nt').value=''; 
+    renderAll();
 }
 
 function showVideoMenu(){
