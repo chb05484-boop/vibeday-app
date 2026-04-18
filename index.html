@@ -390,7 +390,109 @@ function updatePace(){
     document.getElementById('p-bar').style.width=pct+'%';
     document.getElementById('p-txt').textContent=pct>=70?"קצב מעולה!":pct>=30?"בדרך הנכונה":"בואי נתחיל";
 }
+function loadPlanItems(){
+    try { const s=localStorage.getItem('vday_plan'); planItems=s?JSON.parse(s):[]; } catch(e){ planItems=[]; }
+}
 
+function savePlanItems(){
+    try { localStorage.setItem('vday_plan', JSON.stringify(planItems)); } catch(e){}
+}
+
+function togglePlannerForm(){
+    const form=document.getElementById('planner-form');
+    form.classList.toggle('open');
+    if(form.classList.contains('open')){
+        refreshPlannerSelect();
+        const today=new Date();
+        document.getElementById('pf-date').value=
+            today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+    }
+}
+
+function refreshPlannerSelect(){
+    const sel=document.getElementById('pf-task');
+    sel.innerHTML='<option value="" disabled selected>בחרי משימה...</option>';
+    const activeTasks = tasks.filter(t=>!t.done);
+    activeTasks.forEach((t,i)=>{
+        const opt=document.createElement('option');
+        opt.value=i;
+        opt.setAttribute('data-title', t.title);
+        opt.setAttribute('data-subject', t.subject);
+        opt.textContent=t.title+' ('+t.subject+')';
+        sel.appendChild(opt);
+    });
+}
+
+function addPlanItem(){
+    const sel=document.getElementById('pf-task');
+    const date=document.getElementById('pf-date').value;
+    const time=document.getElementById('pf-time').value;
+    const dur=document.getElementById('pf-dur').value;
+    if(sel.selectedIndex<=0||!date) return;
+    const chosen=sel.options[sel.selectedIndex];
+    const title=chosen.getAttribute('data-title');
+    const subject=chosen.getAttribute('data-subject');
+    planItems.push({taskTitle:title,subject:subject,date,time:time||'',dur:dur?parseInt(dur):null,id:Date.now()});
+    savePlanItems();
+    renderPlanner();
+    sel.selectedIndex=0;
+    document.getElementById('pf-time').value='';
+    document.getElementById('pf-dur').value='';
+    document.getElementById('planner-form').classList.remove('open');
+}
+
+function deletePlanItem(id){
+    planItems=planItems.filter(p=>p.id!==id);
+    savePlanItems();
+    renderPlanner();
+}
+
+function getSubjectColor(subject){
+    if(!(subject in subjectColorMap)){subjectColorMap[subject]='pill-c'+(subjectColorIdx%7);subjectColorIdx++;}
+    return subjectColorMap[subject];
+}
+
+function renderPlanner(){
+    const grid=document.getElementById('planner-grid');
+    if(!grid) return;
+    grid.innerHTML='';
+    const today=new Date(); today.setHours(0,0,0,0);
+    for(let i=0;i<7;i++){
+        const d=new Date(today); d.setDate(today.getDate()+i);
+        const dateStr=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        const dayName=d.toLocaleDateString('he-IL',{weekday:'short'});
+        const dayNum=d.toLocaleDateString('he-IL',{day:'numeric',month:'numeric'});
+        const col=document.createElement('div');
+        col.className='planner-day-col'+(i===0?' planner-today-col':'');
+        const head=document.createElement('div');
+        head.className='planner-day-head';
+        head.textContent=dayName+' '+dayNum;
+        col.appendChild(head);
+        const dayPlans=planItems.filter(p=>p.date===dateStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+        if(dayPlans.length===0){
+            const emp=document.createElement('div'); emp.className='planner-empty'; emp.textContent='—'; col.appendChild(emp);
+        } else {
+            dayPlans.forEach(p=>{
+                const pill=document.createElement('div');
+                pill.className='plan-pill '+getSubjectColor(p.subject);
+                let label=p.taskTitle;
+                if(p.time) label=p.time+' '+label;
+                if(p.dur)  label+=' ('+p.dur+'′)';
+                const txt=document.createElement('span');
+                txt.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+                txt.textContent=label;
+                const del=document.createElement('button');
+                del.className='plan-pill-del'; del.textContent='✕';
+                del.onclick=()=>deletePlanItem(p.id);
+                pill.appendChild(txt); pill.appendChild(del); col.appendChild(pill);
+            });
+        }
+        grid.appendChild(col);
+    }
+}
+
+loadPlanItems();
+renderPlanner();
 init();
 </script>
 </body>
