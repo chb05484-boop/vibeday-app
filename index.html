@@ -123,13 +123,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
                 <input id="nt" placeholder="שם המשימה">
                 <input type="date" id="nd" style="color-scheme: dark;" title="תאריך הגשה סופי">
                 
+                <!-- רשימת המקצועות המעודכנת -->
                 <select id="ns" onchange="checkOtherSubject()">
                     <option value="" disabled selected>בחרי מקצוע...</option>
-                    <option value="אינפי">אינפי</option>
-                    <option value="מבנה המחשב">מבנה המחשב</option>
-                    <option value="פול סטאק">פול סטאק</option>
-                    <option value="מבנה נתונים">מבנה נתונים</option>
-                    <option value="C++">C++</option>
+                    <option value="לוגיקה">לוגיקה</option>
+                    <option value="אלגוריתמים">אלגוריתמים</option>
+                    <option value="פול סטאק (FS)">פול סטאק (FS)</option>
+                    <option value="מבוא לבינה מלאכותית">מבוא לבינה מלאכותית</option>
+                    <option value="אלקטרוניקה">אלקטרוניקה</option>
+                    <option value="אבטחת מידע">אבטחת מידע</option>
                     <option value="אחר">אחר (הקלידי)</option>
                 </select>
                 <input id="ns-other" placeholder="מקצוע אחר..." style="display:none;">
@@ -187,10 +189,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-let videoMins=20;
-let tasks=[];
+// משתנים גלובליים (נוספו משתני צבע ללוח זמנים כדי למנוע שגיאות)
+let videoMins = 20;
+let tasks = [];
 let ytPlayer;
 let weekOffset = 0; 
+let planItems = [];
+let subjectColorMap = {};
+let subjectColorIdx = 0;
 
 const vids = {
     'Lo-fi': 'jfKfPfyJRdk',
@@ -390,6 +396,7 @@ function updatePace(){
     document.getElementById('p-bar').style.width=pct+'%';
     document.getElementById('p-txt').textContent=pct>=70?"קצב מעולה!":pct>=30?"בדרך הנכונה":"בואי נתחיל";
 }
+
 function loadPlanItems(){
     try { const s=localStorage.getItem('vday_plan'); planItems=s?JSON.parse(s):[]; } catch(e){ planItems=[]; }
 }
@@ -400,6 +407,7 @@ function savePlanItems(){
 
 function togglePlannerForm(){
     const form=document.getElementById('planner-form');
+    if(!form) return;
     form.classList.toggle('open');
     if(form.classList.contains('open')){
         refreshPlannerSelect();
@@ -411,6 +419,7 @@ function togglePlannerForm(){
 
 function refreshPlannerSelect(){
     const sel=document.getElementById('pf-task');
+    if(!sel) return;
     sel.innerHTML='<option value="" disabled selected>בחרי משימה...</option>';
     const activeTasks = tasks.filter(t=>!t.done);
     activeTasks.forEach((t,i)=>{
