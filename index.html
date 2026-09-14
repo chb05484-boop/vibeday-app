@@ -123,7 +123,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
                 <input id="nt" placeholder="שם המשימה">
                 <input type="date" id="nd" style="color-scheme: dark;" title="תאריך הגשה סופי">
                 
-                <!-- רשימת המקצועות המעודכנת -->
                 <select id="ns" onchange="checkOtherSubject()">
                     <option value="" disabled selected>בחרי מקצוע...</option>
                     <option value="לוגיקה">לוגיקה</option>
@@ -149,6 +148,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
                 <button class="m-chip" onclick="selectMusic(this,'Nature')">טבע</button>
                 <button class="m-chip" onclick="selectMusic(this,'Classical')">קלאסי</button>
                 <button class="m-chip" onclick="selectMusic(this,'Focus')">Focus</button>
+                <!-- הכפתורים החדשים לנעימות -->
+                <button class="m-chip" onclick="selectMusic(this,'N_BenAri1')">חנן בן ארי 1</button>
+                <button class="m-chip" onclick="selectMusic(this,'N_BenAri2')">חנן בן ארי 2</button>
+                <button class="m-chip" onclick="selectMusic(this,'N_BenTzur1')">בן צור 1</button>
+                <button class="m-chip" onclick="selectMusic(this,'N_BenTzur2')">בן צור 2</button>
+                <button class="m-chip" onclick="selectMusic(this,'N_Jewish1')">נעימות כללי 1</button>
+                <button class="m-chip" onclick="selectMusic(this,'N_Jewish2')">נעימות כללי 2</button>
             </div>
             
             <div id="bg-player-container"><div id="bg-player"></div></div>
@@ -189,7 +195,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f0ff;color:#2d2360;he
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-// משתנים גלובליים (נוספו משתני צבע ללוח זמנים כדי למנוע שגיאות)
 let videoMins = 20;
 let tasks = [];
 let ytPlayer;
@@ -198,12 +203,20 @@ let planItems = [];
 let subjectColorMap = {};
 let subjectColorIdx = 0;
 
+// כאן מגדירים את הקישורים. פשוט תחליפי את ה-VID_ID למה שאת רוצה!
 const vids = {
     'Lo-fi': 'jfKfPfyJRdk',
     'Jazz': 'Dx5qFachd3A',
     'Nature': 'eKFTSSKCzWA',
     'Classical': 'mIYzp5rcTvU',
-    'Focus': '4xDzrrm1vbc'
+    'Focus': '4xDzrrm1vbc',
+    // --- נעימות --- 
+    'N_BenAri1': 'VID_ID_1', // לדוגמה: אם הקישור הוא youtube.com/watch?v=AbCdEfGhIjK, תעתיקי לפה רק את AbCdEfGhIjK
+    'N_BenAri2': 'VID_ID_2',
+    'N_BenTzur1': 'VID_ID_3',
+    'N_BenTzur2': 'VID_ID_4',
+    'N_Jewish1': 'VID_ID_5',
+    'N_Jewish2': 'VID_ID_6'
 };
 
 const videoPool = [
@@ -231,9 +244,17 @@ function selectMusic(el, name){
     document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('on'));
     el.classList.add('on');
     
+    const vidId = vids[name];
+    
+    // בדיקה האם הוזן ID אמיתי או שנשאר הזמני
+    if(vidId.startsWith('VID_ID_')) {
+        alert('כדי לשמוע את הנעימה הזו, זכרי להחליף את המזהה בקוד (VID_ID) בקישור האמיתי מיוטיוב!');
+        return;
+    }
+    
     if(ytPlayer && ytPlayer.loadVideoById){
         ytPlayer.loadVideoById({
-            videoId: vids[name],
+            videoId: vidId,
             startSeconds: 0
         });
     }
@@ -397,111 +418,6 @@ function updatePace(){
     document.getElementById('p-txt').textContent=pct>=70?"קצב מעולה!":pct>=30?"בדרך הנכונה":"בואי נתחיל";
 }
 
-function loadPlanItems(){
-    try { const s=localStorage.getItem('vday_plan'); planItems=s?JSON.parse(s):[]; } catch(e){ planItems=[]; }
-}
-
-function savePlanItems(){
-    try { localStorage.setItem('vday_plan', JSON.stringify(planItems)); } catch(e){}
-}
-
-function togglePlannerForm(){
-    const form=document.getElementById('planner-form');
-    if(!form) return;
-    form.classList.toggle('open');
-    if(form.classList.contains('open')){
-        refreshPlannerSelect();
-        const today=new Date();
-        document.getElementById('pf-date').value=
-            today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-    }
-}
-
-function refreshPlannerSelect(){
-    const sel=document.getElementById('pf-task');
-    if(!sel) return;
-    sel.innerHTML='<option value="" disabled selected>בחרי משימה...</option>';
-    const activeTasks = tasks.filter(t=>!t.done);
-    activeTasks.forEach((t,i)=>{
-        const opt=document.createElement('option');
-        opt.value=i;
-        opt.setAttribute('data-title', t.title);
-        opt.setAttribute('data-subject', t.subject);
-        opt.textContent=t.title+' ('+t.subject+')';
-        sel.appendChild(opt);
-    });
-}
-
-function addPlanItem(){
-    const sel=document.getElementById('pf-task');
-    const date=document.getElementById('pf-date').value;
-    const time=document.getElementById('pf-time').value;
-    const dur=document.getElementById('pf-dur').value;
-    if(sel.selectedIndex<=0||!date) return;
-    const chosen=sel.options[sel.selectedIndex];
-    const title=chosen.getAttribute('data-title');
-    const subject=chosen.getAttribute('data-subject');
-    planItems.push({taskTitle:title,subject:subject,date,time:time||'',dur:dur?parseInt(dur):null,id:Date.now()});
-    savePlanItems();
-    renderPlanner();
-    sel.selectedIndex=0;
-    document.getElementById('pf-time').value='';
-    document.getElementById('pf-dur').value='';
-    document.getElementById('planner-form').classList.remove('open');
-}
-
-function deletePlanItem(id){
-    planItems=planItems.filter(p=>p.id!==id);
-    savePlanItems();
-    renderPlanner();
-}
-
-function getSubjectColor(subject){
-    if(!(subject in subjectColorMap)){subjectColorMap[subject]='pill-c'+(subjectColorIdx%7);subjectColorIdx++;}
-    return subjectColorMap[subject];
-}
-
-function renderPlanner(){
-    const grid=document.getElementById('planner-grid');
-    if(!grid) return;
-    grid.innerHTML='';
-    const today=new Date(); today.setHours(0,0,0,0);
-    for(let i=0;i<7;i++){
-        const d=new Date(today); d.setDate(today.getDate()+i);
-        const dateStr=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-        const dayName=d.toLocaleDateString('he-IL',{weekday:'short'});
-        const dayNum=d.toLocaleDateString('he-IL',{day:'numeric',month:'numeric'});
-        const col=document.createElement('div');
-        col.className='planner-day-col'+(i===0?' planner-today-col':'');
-        const head=document.createElement('div');
-        head.className='planner-day-head';
-        head.textContent=dayName+' '+dayNum;
-        col.appendChild(head);
-        const dayPlans=planItems.filter(p=>p.date===dateStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-        if(dayPlans.length===0){
-            const emp=document.createElement('div'); emp.className='planner-empty'; emp.textContent='—'; col.appendChild(emp);
-        } else {
-            dayPlans.forEach(p=>{
-                const pill=document.createElement('div');
-                pill.className='plan-pill '+getSubjectColor(p.subject);
-                let label=p.taskTitle;
-                if(p.time) label=p.time+' '+label;
-                if(p.dur)  label+=' ('+p.dur+'′)';
-                const txt=document.createElement('span');
-                txt.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-                txt.textContent=label;
-                const del=document.createElement('button');
-                del.className='plan-pill-del'; del.textContent='✕';
-                del.onclick=()=>deletePlanItem(p.id);
-                pill.appendChild(txt); pill.appendChild(del); col.appendChild(pill);
-            });
-        }
-        grid.appendChild(col);
-    }
-}
-
-loadPlanItems();
-renderPlanner();
 init();
 </script>
 </body>
